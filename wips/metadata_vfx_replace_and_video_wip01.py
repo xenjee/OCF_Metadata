@@ -101,7 +101,7 @@ class VFXMetadataProcessor:
             print("Invalid path provided. Please provide a directory containing EXR files.")
 
 # Example usage
-folder_path = "/Users/stefan/Documents/easy_paths/metadata_easy_path/files_for_testing/original/"
+folder_path = "/Users/stefan/Documents/easy_paths/metadata_easy_path/source_images/original/"
 metadata = {
     "title": "Sample_Shot",
     "artist": "VFX Artist",
