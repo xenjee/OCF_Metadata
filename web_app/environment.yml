@@ -1,0 +1,7 @@
+name: ocf_metadata_wep_app
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - flask=3.1.0
+
