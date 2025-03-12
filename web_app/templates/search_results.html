@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Found Files</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      color: rgb(200, 200, 200);
+      background-color: rgb(57, 68, 85);
+      font-family: Arial, sans-serif;
+    }
+    .content-container {
+      background-color: rgba(57, 68, 85, 1);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      max-width: 800px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    h2 {
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 1.1em;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+    .form-group {
+      margin-top: 15px;
+      text-align: left;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="content-container">
+  <h2>Found Files</h2>
+  <p><strong>Source Folder:</strong> {{ source_folder }}</p>
+  <p><strong>File Extension:</strong> {{ file_ext }}</p>
+  {% if found_files %}
+    <ul>
+      {% for file in found_files %}
+        <li>{{ file }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No files found matching the criteria.</p>
+  {% endif %}
+  <div class="form-group">
+    <h3>Generate JSON Files</h3>
+    <form action="{{ url_for('generate') }}" method="post">
+      <input type="hidden" name="source_folder" value="{{ source_folder }}">
+      <input type="hidden" name="file_ext" value="{{ file_ext }}">
+      <label for="dest_folder_input">Destination Folder:</label>
+      <input type="text" name="dest_folder" id="dest_folder_input" placeholder="/path/to/destination" required>
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('dest_folder_picker').click();">Browse</button>
+      <input type="file" id="dest_folder_picker" webkitdirectory directory style="display: none;" onchange="handleDestFolderSelection(event)">
+      <br>
+      <button type="submit" class="btn btn-primary">Generate JSON Files</button>
+    </form>
+  </div>
+</div>
+<script>
+  function handleDestFolderSelection(event) {
+    const files = event.target.files;
+    if (files.length > 0) {
+      const relativePath = files[0].webkitRelativePath;
+      const folderName = relativePath.split('/')[0];
+      document.getElementById('dest_folder_input').value = folderName;
+    }
+  }
+</script>
+</body>
+</html>
