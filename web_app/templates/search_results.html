@@ -35,20 +35,20 @@
     label {
       font-weight: bold;
     }
-    /* Updated text fields style:
+    /* Text fields style:
        - Dark grey background with 50% opacity,
        - Outline set to rgb(100,100,100),
-       - Text color remains 85% white. */
+       - Text color 85% white */
     input[type="text"] {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
       margin-bottom: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid rgb(100,100,100);
       border-radius: 4px;
-      background-color: rgba(64, 64, 64, 0.5);
+      background-color: rgba(64,64,64,0.5);
       color: rgba(255,255,255,0.85);
-      outline: 1px solid rgb(100, 100, 100);
+      outline: 1px solid rgb(100,100,100);
     }
     .btn-custom {
       background-color: rgba(13,110,253,0.3) !important;
@@ -64,7 +64,8 @@
   <h2>OCF Files found</h2>
   <div class="below-title">
     <p><strong>Source Folder:</strong> {{ source_folder }}</p>
-    <p><strong>File Extension:</strong> {{ file_ext }}</p>
+    <p><strong>Camera Brand:</strong> {{ camera_brand }}</p>
+    <p><strong>Extensions to search:</strong> {{ file_ext }}</p>
     {% if found_files %}
       <ul>
         {% for file in found_files %}
@@ -79,27 +80,16 @@
       <h3>Generate JSON Files</h3>
       <form action="{{ url_for('generate') }}" method="post">
         <input type="hidden" name="source_folder" value="{{ source_folder }}">
+        <input type="hidden" name="camera_brand" value="{{ camera_brand }}">
         <input type="hidden" name="file_ext" value="{{ file_ext }}">
-        <label for="dest_folder_input">Destination Folder:</label>
-        <input type="text" name="dest_folder" id="dest_folder_input" value="/Users/stefan/WORK/SOURCE_MEDIA/Camera_samples/SONY/json" placeholder="/path/to/destination" required>
-        <!-- Added margin-top: 10px on the Browse button -->
-        <button type="button" class="btn btn-secondary" style="margin-top: 10px;" onclick="document.getElementById('dest_folder_picker').click();">Browse</button>
-        <input type="file" id="dest_folder_picker" webkitdirectory directory style="display: none;" onchange="handleDestFolderSelection(event)">
+        <label for="dest_folder_input">Destination Folder (absolute path):</label>
+        <!-- Updated default destination folder -->
+        <input type="text" name="dest_folder" id="dest_folder_input" value="/Users/stefan/WORK/SOURCE_MEDIA/Camera_samples/json_metadata/" placeholder="/path/to/destination" required>
         <br>
         <button type="submit" class="btn btn-primary btn-custom" style="margin-top: 50px;">Generate JSON Files</button>
       </form>
     </div>
   </div>
 </div>
-<script>
-  function handleDestFolderSelection(event) {
-    const files = event.target.files;
-    if (files.length > 0) {
-      const relativePath = files[0].webkitRelativePath;
-      const folderName = relativePath.split('/')[0];
-      document.getElementById('dest_folder_input').value = folderName;
-    }
-  }
-</script>
 </body>
 </html>

@@ -8,17 +8,17 @@
     body {
       margin: 0;
       padding: 0;
-      color: rgb(200,200,200);
-      background-color: rgb(57,68,85);
+      color: rgb(200, 200, 200);
+      background-color: rgb(57, 68, 85);
       font-family: Arial, sans-serif;
     }
     .content-container {
-      background-color: rgba(57,68,85,1);
+      background-color: rgba(57, 68, 85, 1);
       padding: 20px;
       border-radius: 10px;
       margin: 20px auto;
       max-width: 800px;
-      box-shadow: none;
+      box-shadow: none; /* Shadow removed; originally: 0 4px 10px rgba(0,0,0,0.3) */
       text-align: left;
     }
     h2 {
@@ -26,7 +26,7 @@
       margin-bottom: 0;
     }
     .below-title {
-      margin-top: 50px;
+      margin-top: 50px; /* 50px gap after title */
       text-align: left;
     }
     .form-group {
@@ -38,20 +38,21 @@
     label {
       font-weight: bold;
     }
-    /* Updated text fields style:
+    /* Text fields and dropdown styling:
        - Dark grey background with 50% opacity,
-       - Outline set to rgb(100,100,100),
-       - Text color remains 85% white. */
-    input[type="text"] {
+       - Outline set to rgb(100, 100, 100),
+       - Text color 85% white */
+    input[type="text"],
+    select {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
       margin-bottom: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid rgb(100,100,100);
       border-radius: 4px;
-      background-color: rgba(64, 64, 64, 0.5);
+      background-color: rgba(64,64,64,0.5);
       color: rgba(255,255,255,0.85);
-      outline: 1px solid rgb(100, 100, 100);
+      outline: 1px solid rgb(100,100,100);
     }
     /* Custom button style for background transparency */
     .btn-custom {
@@ -84,31 +85,24 @@
     {% endwith %}
     <form action="{{ url_for('search') }}" method="post">
       <div class="form-group first-form-group">
-        <label for="source_folder_input">Source Folder:</label>
-        <!-- Default source folder path -->
-        <input type="text" name="source_folder" id="source_folder_input" value="/Users/stefan/WORK/SOURCE_MEDIA/Camera_samples/SONY" placeholder="/path/to/source" required>
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('source_folder_picker').click();">Browse</button>
-        <input type="file" id="source_folder_picker" webkitdirectory directory style="display: none;" onchange="handleSourceFolderSelection(event)">
+        <label for="source_folder_input">Source Folder (absolute path):</label>
+        <!-- Manual text entry for the path; "Browse" input removed -->
+        <input type="text" name="source_folder" id="source_folder_input"
+               value="/Users/stefan/WORK/SOURCE_MEDIA/Camera_samples/ARRI/logC4/mxf_arriraw/"
+               placeholder="/path/to/source" required>
       </div>
       <div class="form-group">
-        <label for="file_ext">File Extension (e.g., .mxf):</label>
-        <!-- Default file extension -->
-        <input type="text" name="file_ext" id="file_ext" value=".mxf" placeholder=".mxf" required>
+        <label for="camera_brand">Camera Brand:</label>
+        <select name="camera_brand" id="camera_brand" required>
+          <option value="ARRI">ARRI</option>
+          <option value="SONY">SONY</option>
+          <option value="RED">RED</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
       <button type="submit" class="btn btn-primary btn-custom search-button">Search Files</button>
     </form>
   </div>
 </div>
-<script>
-  function handleSourceFolderSelection(event) {
-    const files = event.target.files;
-    if (files.length > 0) {
-      // Due to browser security restrictions, only a relative folder name is available.
-      const relativePath = files[0].webkitRelativePath;
-      const folderName = relativePath.split('/')[0];
-      document.getElementById('source_folder_input').value = folderName;
-    }
-  }
-</script>
 </body>
 </html>
