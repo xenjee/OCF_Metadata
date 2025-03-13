@@ -9,6 +9,9 @@ import array
 NOTE
 command line:
 /opt/arri/art-0.3.0/bin/art-cmd export --input '/disks/nas0/CGI/R_n_D/colorManagement/cameraSamples/Arri/logC4/A_0001C016_220824_063330_p12SQ.mxf' --output /disks/nas0/CGI/R_n_D/colorManagement/metadata/tests/arri_cmd/export_metadata/A_0001C016_220824_063330_p12SQ_metadata_export.json
+
+mac:
+/Users/stefan/WORK/DEV/metadata/art-cmd_0.3.0_macos_universal/bin/art-cmd export /Users/stefan/WORK/SOURCE_MEDIA/Camera_samples/ARRI/logC4/mxf_arriraw/A_0001C026_220824_064815_a12SQ.mxf --output /Users/stefan/WORK/SOURCE_MEDIA/Camera_samples/ARRI/logC4/mxf_arriraw/json_art_cmd/A_0001C026_220824_064815_a12SQ_metadata_export.json
 """
 
 class JsonMetadataProcessor:
