@@ -12,11 +12,6 @@ os.environ['PATH'] = (
     os.environ.get('PATH', '')
 )
 
-# trying to fix automator not running the processing files action
-# Add the conda environment's bin directory to PATH ==> doesn't work
-# conda_bin = "/opt/miniconda3/envs/ocf_metadata_wep_app/bin"
-# os.environ["PATH"] = conda_bin + os.pathsep + os.environ.get("PATH", "")
-
 # Allowed file extensions mapping.
 allowed_extensions = {
     'ARRI': ['.mxf', '.mov'],
@@ -30,14 +25,6 @@ tool_paths = {
     'RED': "REDline",     # Resolved via PATH.
     'SONY': "rawexporter" # Resolved via PATH.
 }
-
-# trying to fix automator not running the processing files action ==> doesn't work this way
-# tool_paths = {
-#     'ARRI': "/Users/stefan/WORK/DEV/metadata/art-cmd_0.3.0_macos_universal/bin/art-cmd",
-#     'RED': "/Applications/REDCINE-X PRO/REDCINE-X PRO.app/Contents/MacOS/REDline",
-#     'SONY': "/Applications/RAW Viewer.app/Contents/MacOS/rawexporter/rawexporter"
-# }
-
 
 # ---------------- Custom Canvas-Based Button ----------------
 class CustomButton(tk.Canvas):

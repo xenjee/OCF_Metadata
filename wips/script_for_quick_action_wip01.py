@@ -12,11 +12,6 @@ os.environ['PATH'] = (
     os.environ.get('PATH', '')
 )
 
-# trying to fix automator not running the processing files action
-# Add the conda environment's bin directory to PATH ==> doesn't work
-# conda_bin = "/opt/miniconda3/envs/ocf_metadata_wep_app/bin"
-# os.environ["PATH"] = conda_bin + os.pathsep + os.environ.get("PATH", "")
-
 # Allowed file extensions mapping.
 allowed_extensions = {
     'ARRI': ['.mxf', '.mov'],
@@ -31,19 +26,11 @@ tool_paths = {
     'SONY': "rawexporter" # Resolved via PATH.
 }
 
-# trying to fix automator not running the processing files action ==> doesn't work this way
-# tool_paths = {
-#     'ARRI': "/Users/stefan/WORK/DEV/metadata/art-cmd_0.3.0_macos_universal/bin/art-cmd",
-#     'RED': "/Applications/REDCINE-X PRO/REDCINE-X PRO.app/Contents/MacOS/REDline",
-#     'SONY': "/Applications/RAW Viewer.app/Contents/MacOS/rawexporter/rawexporter"
-# }
-
-
 # ---------------- Custom Canvas-Based Button ----------------
 class CustomButton(tk.Canvas):
     def __init__(self, master, text, command=None, width=120, height=30,
                  bg="#0d6efd", fg="#c8c8c8", activebg="#0b5ed7", activefg="#c8c8c8",
-                 font=("Arial", 14), **kwargs):
+                 font=("Arial", 12, "bold"), **kwargs):
         super().__init__(master, width=width, height=height, highlightthickness=0, bd=0, bg=bg, **kwargs)
         self.command = command
         self.bg = bg
@@ -54,6 +41,7 @@ class CustomButton(tk.Canvas):
         self.text = text
         self.rect = self.create_rectangle(0, 0, width, height, fill=bg, outline=bg)
         self.label = self.create_text(width/2, height/2, text=text, fill=fg, font=font)
+        self.bind("<Button-1>", self.on_click)
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
         self.tag_bind(self.rect, "<Button-1>", self.on_click)
@@ -66,7 +54,6 @@ class CustomButton(tk.Canvas):
     def on_click(self, event):
         if self.command:
             self.command()
-        return "break"  # Prevent further event propagation.
 
     def on_enter(self, event):
         self.itemconfig(self.rect, fill=self.activebg, outline=self.activebg)
@@ -79,8 +66,9 @@ class CustomButton(tk.Canvas):
 # ---------------- Custom Canvas-Based Dropdown ----------------
 class CustomDropdown(tk.Canvas):
     def __init__(self, master, options, command=None, width=150, height=30,
-                 bg="#364561", fg="#bbbbbb", activebg="#0b5ed7", font=("Arial", 14),
+                 bg="#404040", fg="#d9d9d9", activebg="#646464", font=("Arial", 12),
                  **kwargs):
+        # Initialize canvas
         super().__init__(master, width=width, height=height, highlightthickness=0, bd=0, bg=bg, **kwargs)
         self.options = options
         self.command = command  # Callback when selection changes
@@ -91,22 +79,14 @@ class CustomDropdown(tk.Canvas):
         self.activebg = activebg
         self.font = font
         self.current_value = options[0] if options else ""
+        # Draw rectangle background
         self.rect = self.create_rectangle(0, 0, width, height, fill=bg, outline=bg)
-        self.text_item = self.create_text(width/2, height/2, anchor="center", text=self.current_value,
+        # Draw current selection text
+        self.text_item = self.create_text(5, height/2, anchor="w", text=self.current_value,
                                           fill=fg, font=font)
-        # Bind click and hover events to the main dropdown canvas
+        # Bind click event
         self.bind("<Button-1>", self.toggle_dropdown)
-        self.bind("<Enter>", self.on_enter)
-        self.bind("<Leave>", self.on_leave)
         self.dropdown_window = None
-
-    def on_enter(self, event):
-        # Change background color when hovering over the dropdown "button"
-        self.itemconfig(self.rect, fill=self.activebg, outline=self.activebg)
-
-    def on_leave(self, event):
-        # Revert background color when not hovering
-        self.itemconfig(self.rect, fill=self.bg, outline=self.bg)
 
     def toggle_dropdown(self, event):
         if self.dropdown_window:
@@ -115,17 +95,21 @@ class CustomDropdown(tk.Canvas):
             self.open_dropdown()
 
     def open_dropdown(self):
+        # Create a Toplevel window that appears below the widget
         self.dropdown_window = tk.Toplevel(self)
-        self.dropdown_window.wm_overrideredirect(True)
+        self.dropdown_window.wm_overrideredirect(True)  # Remove window decorations
         x = self.winfo_rootx()
         y = self.winfo_rooty() + self.height
         self.dropdown_window.geometry(f"{self.width}x{len(self.options)*self.height}+{x}+{y}")
+        # Create option buttons inside the dropdown window
         for index, option in enumerate(self.options):
+            # Using a simple Label for each option
             lbl = tk.Label(self.dropdown_window, text=option, bg=self.bg, fg=self.fg, font=self.font)
             lbl.place(x=0, y=index*self.height, width=self.width, height=self.height)
             lbl.bind("<Button-1>", lambda e, opt=option: self.select_option(opt))
             lbl.bind("<Enter>", lambda e, widget=lbl: widget.config(bg=self.activebg))
             lbl.bind("<Leave>", lambda e, widget=lbl: widget.config(bg=self.bg))
+        # Bind click outside to close dropdown
         self.dropdown_window.bind("<FocusOut>", lambda e: self.close_dropdown())
         self.dropdown_window.focus_set()
 
@@ -144,57 +128,7 @@ class CustomDropdown(tk.Canvas):
     def get(self):
         return self.current_value
 
-# ---------------- Custom Canvas-Based Scrollbar ----------------
-class CustomScrollbar(tk.Canvas):
-    def __init__(self, master, target, width=15, **kwargs):
-        super().__init__(master, width=width, highlightthickness=0, bd=0, **kwargs)
-        self.target = target  # The widget that will be scrolled.
-        self._drag_offset = 0  # Offset when dragging the thumb.
-        # Save pack options for re-packing when needed.
-        self.pack_options = {"side": tk.RIGHT, "fill": tk.Y}
-        self.bind("<Button-1>", self.on_click)
-        self.bind("<B1-Motion>", self.on_drag)
-        self.bind("<Configure>", lambda e: self.update_thumb())
-        # Override the target widget's yscrollcommand.
-        self.target.config(yscrollcommand=self.on_target_scroll)
-        self.first = 0.0
-        self.last = 1.0
-
-    def on_target_scroll(self, first, last):
-        self.first = float(first)
-        self.last = float(last)
-        # Show scrollbar only if scrolling is needed.
-        if self.first == 0.0 and self.last == 1.0:
-            self.pack_forget()
-        else:
-            if not self.winfo_ismapped():
-                self.pack(**self.pack_options)
-        self.update_thumb()
-
-    def update_thumb(self):
-        self.delete("thumb")
-        height = self.winfo_height()
-        if height <= 0:
-            return
-        thumb_start = self.first * height
-        thumb_end = self.last * height
-        self.create_rectangle(0, thumb_start, self.winfo_width(), thumb_end,
-                              fill="#555555", outline="#555555", tags="thumb")
-
-    def on_click(self, event):
-        thumb_coords = self.bbox("thumb")
-        if thumb_coords and thumb_coords[1] <= event.y <= thumb_coords[3]:
-            self._drag_offset = event.y - thumb_coords[1]
-        else:
-            self.target.yview_moveto(event.y / self.winfo_height())
-
-    def on_drag(self, event):
-        height = self.winfo_height()
-        new_top = event.y - self._drag_offset
-        fraction = new_top / height
-        self.target.yview_moveto(fraction)
-
-# ---------------- UI Functions ----------------
+# ---------------- UI Functions (Same as original) ----------------
 def browse_folder(entry):
     folder = filedialog.askdirectory()
     if folder:
@@ -205,7 +139,7 @@ def browse_folder(entry):
 def update_extensions_display(new_value=None):
     camera = custom_dropdown.get()
     exts = allowed_extensions.get(camera, [])
-    extensions_value_label.config(text=", ".join(exts))
+    extensions_label.config(text="Allowed Extensions: " + ", ".join(exts))
     update_found_files()
 
 def update_found_files():
@@ -227,8 +161,6 @@ def update_found_files():
     else:
         found_files_text.insert(tk.END, "No matching files found.")
     found_files_text.config(state=tk.DISABLED)
-    # Force update of scrollbar visibility.
-    found_files_text.yview_moveto(found_files_text.yview()[0])
 
 def process_files():
     source_folder = source_entry.get().strip()
@@ -315,63 +247,52 @@ def process_files():
 # ---------------- Build the UI ----------------
 root = tk.Tk()
 root.title("OCF Metadata JSON Generator")
-window_width = 1200
-window_height = 550
-root.geometry(f"{window_width}x{window_height}")
-root.update_idletasks()
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-x = (screen_width // 2) - (window_width // 2)
-y = (screen_height // 2) - (window_height // 2)
-root.geometry(f"{window_width}x{window_height}+{x}+{y}")
-root.configure(bg="#3A4450")
-root.option_add("*Font", "Arial 14")
 
-container = tk.Frame(root, padx=30, pady=30, bg="#3A4450")
-container.pack(fill="both", expand=True)
-
-tk.Label(container, text="Source Folder (camera files):", bg="#3A4450", fg="#dddddd").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-source_entry = tk.Entry(container, width=100, fg="#bbbbbb",  bg="#2D2F32", highlightbackground="#2D2F32", relief="flat", borderwidth=2, highlightthickness=2)
+# Source Folder Input.
+tk.Label(root, text="Source Folder (camera files):").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+source_entry = tk.Entry(root, width=50)
 source_entry.grid(row=0, column=1, padx=5, pady=5)
-browse_source_btn = CustomButton(container, text="Browse", command=lambda: browse_folder(source_entry), width=80, height=30, bg="#334A73")
-browse_source_btn.grid(row=0, column=2, sticky="e", padx=5, pady=5)
+browse_source_btn = CustomButton(root, text="Browse", command=lambda: browse_folder(source_entry), width=80, height=30)
+browse_source_btn.grid(row=0, column=2, padx=5, pady=5)
 
-tk.Label(container, text="Destination Folder (JSON files):", bg="#3A4450", fg="#dddddd").grid(row=1, column=0, padx=5, pady=5, sticky="w")
-dest_entry = tk.Entry(container, width=100, fg="#bbbbbb",  bg="#2D2F32", highlightbackground="#2D2F32", relief="flat", borderwidth=2, highlightthickness=2)
+# Destination Folder Input.
+tk.Label(root, text="Destination Folder (JSON files):").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+dest_entry = tk.Entry(root, width=50)
 dest_entry.grid(row=1, column=1, padx=5, pady=5)
-browse_dest_btn = CustomButton(container, text="Browse", command=lambda: browse_folder(dest_entry), width=80, height=30, bg="#334A73")
-browse_dest_btn.grid(row=1, column=2, sticky="e", padx=5, pady=5)
+browse_dest_btn = CustomButton(root, text="Browse", command=lambda: browse_folder(dest_entry), width=80, height=30)
+browse_dest_btn.grid(row=1, column=2, padx=5, pady=5)
 
-tk.Label(container, text="Choose Camera Brand:", bg="#3A4450", fg="#dddddd").grid(row=2, column=0, padx=5, pady=5, sticky="w")
-custom_dropdown = CustomDropdown(container, options=list(allowed_extensions.keys()), width=80, height=30,
-                                 bg="#334A73", fg="#bbbbbb", activebg="#0b5ed7", font=("Arial", 14))
+# Camera Brand Dropdown using CustomDropdown.
+tk.Label(root, text="Camera Brand:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
+custom_dropdown = CustomDropdown(root, options=list(allowed_extensions.keys()), width=150, height=30,
+                                 bg="#404040", fg="#d9d9d9", activebg="#646464", font=("Arial", 12))
 custom_dropdown.grid(row=2, column=1, padx=5, pady=5, sticky="w")
-
+# Set callback to update extensions display when selection changes.
 def dropdown_callback(selected):
     update_extensions_display()
 custom_dropdown.command = dropdown_callback
 
-allowed_text_label = tk.Label(container, text="Allowed Extensions:", bg="#3A4450", fg="#dddddd")
-allowed_text_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
+# Allowed Extensions Display.
+extensions_label = tk.Label(root, text="Allowed Extensions: " + ", ".join(allowed_extensions[custom_dropdown.get()]))
+extensions_label.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky="w")
 
-extensions_value_label = tk.Label(container, text=", ".join(allowed_extensions[custom_dropdown.get()]),
-                                  bg="#3A4450", fg="#bbbbbb", font=("Arial", 14))
-extensions_value_label.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+# Process Files Button.
+process_btn = CustomButton(root, text="Search & Process Files", command=process_files, width=160, height=30)
+process_btn.grid(row=4, column=1, padx=5, pady=20)
 
-files_frame = tk.Frame(container)
-files_frame.grid(row=4, column=0, columnspan=3, padx=5, pady=35, sticky="nsew")
-found_files_text = tk.Text(files_frame, height=10, bg="#282828", fg="#999999",
-                           highlightbackground="#282828", relief="flat", borderwidth=2, highlightthickness=2)
+# Found Files List (Scrollable Text Area).
+files_frame = tk.Frame(root)
+files_frame.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
+found_files_text = tk.Text(files_frame, height=10)
 found_files_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-custom_scrollbar = CustomScrollbar(files_frame, found_files_text, width=15, bg="#282828")
-custom_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+scrollbar = tk.Scrollbar(files_frame, command=found_files_text.yview)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+found_files_text.config(yscrollcommand=scrollbar.set)
 
-process_btn = CustomButton(container, text="Process Files", command=process_files, width=100, height=30, bg="#32599C")
-process_btn.grid(row=5, column=2, sticky="e", padx=5, pady=20)
+root.grid_rowconfigure(5, weight=1)
+root.grid_columnconfigure(1, weight=1)
 
-container.grid_rowconfigure(5, weight=1)
-container.grid_columnconfigure(1, weight=1)
-
+# Pre-fill source folder if provided as a command-line argument.
 if len(sys.argv) > 1:
     arg_path = sys.argv[1].strip()
     if os.path.isdir(arg_path):
